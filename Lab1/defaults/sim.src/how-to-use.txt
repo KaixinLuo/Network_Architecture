@@ -1,0 +1,66 @@
+Help for the CISE Network Simulator
+-----------------------------------
+
+How to use:
+-----------
+
+* First, load the config file. This can be done by File/Load or
+  by putting the config file at the command line of this program.
+  Use "Run/Run" to start running. 
+  
+  To send one or more messages, type in the messages in the text 
+  window. Press "Send Msg" button.
+
+  To send a graph, "Load Graph" first and then "Send Graph." Or if
+  you are as lazy as I am, just press "Send Graph" and it'll load
+  the graph and start running.
+
+  Change the delay to make it run faster/slower. Use "Run/Single step"
+  and space bar to see it step by step.
+
+  Change Debug Level (from 0~3) and use dprintf() in your program
+  to print out debug information. 
+
+Selections in Menu:
+-------------------
+
+  File: Load	    -- load config file
+	Exit 	    -- stop the program
+  Edit: Raise	    -- raise the node graphs and space-time diagrams
+		       to the front of main window. Useful when you
+		       cannot see the graphs.
+  Run:  Run	    -- Start the simulator. You need to send msg/graph
+		       to see further animation.
+	Single Step -- Enters single step mode. Use <space> bar
+		       for a step.
+	Pause	    -- Pause the simulation.
+	Resume      -- Resume the simulation.
+	Delay       -- set delay between events. The default is 50. 
+		       5 is pretty fast. Set to 1, it will run so fast
+		       that you may temporarily lose control over it.
+	Stop Time   -- The simulation time to stop.
+	Inc/Dec Debug Level -- Increament/Decrement Debug Level, which
+		       is used in dprintf().
+  Help: About       -- About CISE Project.
+	How to use  -- This help.
+
+Status Bar: (at the bottom)
+-----------
+  Filename:	The config file name.
+  Stop Time:	The simulated time to stop.
+  Delay:	Delay between events.
+  DebugLevel:	DebugLevel used in dprintf().
+  Simulation time: The clock in the simulator.
+
+In each node graph:
+------------------
+  Send msg:	send msg in the text window
+  Send graph:	send the graph in the graph window
+  Clear msg:    clear the text window
+  Clear graph:  clear the graph window
+  Load graph:   load a pre-defined graph
+
+Known Bugs:
+-----------
+* If you put the Simulator window in the background and 
+  then bring it to foreground, you may see some bad graphics.
