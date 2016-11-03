@@ -3,7 +3,7 @@
  * e-mail		: hill.1957@osu.edu
  * CSE account	: hillja
  * ---------------------------------------------------- */
-
+ 
  /*
   CSE 3462
   Lab 2
@@ -29,7 +29,7 @@
 #include "dlc_layer.h"
 
 /****************************************************/
-/* --- Check to see if there is and A_PDU in transmission Buffer --- */
+/* --- YOU DO NOT HAVE TO HAVE THIS FUNCTION --- */
 static int
 window_open(DLC_Conn_Info_TYPE *dci)
 {
@@ -89,7 +89,11 @@ FromApplicationToDatalink(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity, PDU_TYPE *pdu
   
   
   /* If possible send info frame. You may use: 
-     SendInfo(dlc_layer_entity, dci); */
+     SendInfo(dlc_layer_entity, dci);
+     if there are less than the window_size sent but
+     unacknowledged a_pdu's in the transmission buffer
+     use DataInPDUBuffer() to get all sent and unsent
+     frames.   */
      
     if(window_open(dci)){
       SendInfo(dlc_layer_entity, dci);
@@ -99,7 +103,6 @@ FromApplicationToDatalink(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity, PDU_TYPE *pdu
 }
 
 /**************************************************************/
-/* --- Sending Frames from Physical Link to Datalink --- */
 /* --- YOU MUST HAVE THIS FUNCTION --- */
 static
 FromPhysicalToDatalink(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
@@ -110,9 +113,6 @@ FromPhysicalToDatalink(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 	/* Check and discard the pdu when error is detected or P/F 
         bit is set */
   if(pdu_from_physical->u.d_pdu.p_bit == 1){
-    return 0;
-  }
-  if(pdu_from_physical->u.d_pdu.error){
     return 0;
   }
 	
@@ -134,11 +134,8 @@ FromPhysicalToDatalink(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
   }
 }
 
-
-/********************************************************************/
-/* --- Datalink Processing Functions for Info, RR, and REJ Frames --- */
-
-
+/**************************************************************/
+/* --- YOU DO NOT HAVE TO HAVE THIS FUNCTION --- */
 static
 DatalinkProcessRR(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 				  PDU_TYPE *pdu,
@@ -146,7 +143,9 @@ DatalinkProcessRR(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 {
      /* Check the address and if not correct discard frame and
          return 0;   */
-  if( pdu->u.d_pdu.address != GetNodeID(dlc_layer_entity)){
+  int address = pdu->u.d_pdu.address;
+  
+  if( address != GetNodeID(dlc_layer_entity)){
     return 0;
   }
      /* Otherwise:  
@@ -165,11 +164,11 @@ DatalinkProcessRR(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 	/* Free pdu */
 	pdu_free(pdu);
   
-  printf("\n");
 	return 0;
 }
 
-
+/*************************************************************/
+/* --- YOU DO NOT HAVE TO HAVE THIS FUNCTION --- */
 static
 DatalinkProcessREJ(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 				   PDU_TYPE *pdu,
@@ -178,7 +177,8 @@ DatalinkProcessREJ(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
      /* Check the address and if not correct discard frame and
          return 0;   */
      /* Otherwise, free up space in the retransmission buffer */
-  if(pdu->u.d_pdu.address != GetNodeID(dlc_layer_entity)){
+  int send_addr = pdu->u.d_pdu.address;
+  if(send_addr != GetNodeID(dlc_layer_entity)){
     return 0;
   }
   UpdatePDUBuffer(dlc_layer_entity, pdu, dci);  
@@ -194,7 +194,8 @@ DatalinkProcessREJ(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
     return 0;
 }
 
-
+/**************************************************************/
+/* --- YOU DO NOT HAVE TO HAVE THIS FUNCTION --- */
 static
 DatalinkProcessInfo(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 					PDU_TYPE *pdu,
@@ -205,8 +206,8 @@ DatalinkProcessInfo(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
   
      /* Check the address and if not correct discard frame and
          return 0;   */
-         
-  if(pdu->u.d_pdu.address != GetNodeID(dlc_layer_entity)){
+  int address = pdu->u.d_pdu.address;
+  if(address != GetNodeID(dlc_layer_entity)){
     return 0;
   }
      /* Check if the pdu has the expected sequence number
@@ -218,6 +219,9 @@ DatalinkProcessInfo(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 	  return 0;
 	}
 	
+	if(pdu->u.d_pdu.error){
+	  return 0;
+	}
 	/* If expected PDU, then increment rcv_nxt,
         set rej_already_sent = 0 and RR is sent */
 	/* You may use SendRR() to send RR */
@@ -247,16 +251,15 @@ DatalinkTimerExpired(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 	
 	/* Send as many pdu's as allowed by window.
 	   You may use: window_open() and SendInfo(); */
-	dci->snd_nxt = dci->snd_una;
+	if(window_open(dci)){ dci->snd_nxt = dci->snd_una; }
   while(window_open(dci)){
     SendInfo(dlc_layer_entity, dci);
   }
 	return 0;
 }
 
-/*************************************************************
-  Sending Info, RR, and REJ Functions
-*/
+/**************************************************************/
+/* --- YOU DO NOT HAVE TO HAVE THIS FUNCTION --- */
 static
 SendInfo(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
 			  DLC_Conn_Info_TYPE *dci)
@@ -285,7 +288,8 @@ SendInfo(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity,
   return 0;
 }
 
-
+/************************************************************/
+/* --- YOU DO NOT HAVE TO HAVE THIS FUNCTION --- */
 static
 SendRR(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity, PDU_TYPE *pdu,
 	   DLC_Conn_Info_TYPE *dci)
@@ -297,7 +301,6 @@ SendRR(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity, PDU_TYPE *pdu,
 	d_pdu->u.d_pdu.type = D_RR;
 	d_pdu->u.d_pdu.p_bit = NO;
 	d_pdu->u.d_pdu.number = dci->rcv_nxt;
-	//TODO Check to see what address should be
 	d_pdu->u.d_pdu.address = GetReceiverID(dlc_layer_entity);
 	d_pdu->u.d_pdu.error = NO;
 	/* Send to d_pdu to physical layer */
@@ -305,7 +308,8 @@ SendRR(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity, PDU_TYPE *pdu,
   
 	return 0;
 }
-
+/**************************************************************/
+/* --- YOU DO NOT HAVE TO HAVE THIS FUNCTION --- */
 static
 SendREJ(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity, PDU_TYPE *pdu,
 		DLC_Conn_Info_TYPE *dci)
@@ -322,7 +326,6 @@ SendREJ(DLC_LAYER_ENTITY_TYPE *dlc_layer_entity, PDU_TYPE *pdu,
 	d_pdu->u.d_pdu.type = D_REJ;
 		d_pdu->u.d_pdu.p_bit = NO;
 	d_pdu->u.d_pdu.number = dci->rcv_nxt;
-	//TODO Check to see what address should be
 	d_pdu->u.d_pdu.address = GetReceiverID(dlc_layer_entity);
 	d_pdu->u.d_pdu.error = NO;
 	/* Send to d_pdu to physical layer */
